@@ -51,7 +51,8 @@ function prettyLabel(string $seg): string
 }
 function inicioCuerpo(String $cabecera)
 {
-
+    require_once(dirname(__FILE__) . "/../../cabecera.php");
+    inicio_cuerpo();    
     global $acceso;
     $url = $_SERVER['REQUEST_URI'];
     $path = parse_url($url, PHP_URL_PATH);
