@@ -60,4 +60,7 @@ function inicio_cuerpo() {
 }
 
 
+$acl = new ACLArray();   
+$acceso = new Acceso();  
+
 

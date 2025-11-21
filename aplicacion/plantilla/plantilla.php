@@ -51,6 +51,7 @@ function prettyLabel(string $seg): string
 }
 function inicioCuerpo(String $cabecera)
 {
+    global $acceso;
     require_once(dirname(__FILE__) . "/../../cabecera.php");
     inicio_cuerpo();    
     global $acceso;
@@ -96,7 +97,12 @@ function inicioCuerpo(String $cabecera)
             </header>
 
             <div id="barraLogin">
-
+        <?php if ($acceso->hayUsuario()): ?>
+            Bienvenido, <?= htmlspecialchars($acceso->getNombre()); ?>
+            | <a href="/aplicacion/acceso/logout.php">Cerrar sesión</a>
+        <?php else: ?>
+            <a href="/aplicacion/acceso/login.php">Login</a>
+        <?php endif; ?>
             </div>
             <div id="barraMenu">
                 <ul>

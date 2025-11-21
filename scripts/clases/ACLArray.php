@@ -1,5 +1,6 @@
 <?php
-include_once(dirname(__FILE__) . "../librerias/validacion.php");
+include_once(dirname(__FILE__) . "/../librerias/validacion.php");
+
     class ACLArray extends ACLBase
     {
         /**
@@ -118,10 +119,10 @@ include_once(dirname(__FILE__) . "../librerias/validacion.php");
          * @param integer $codRole role a buscar
          * @return boolean Devuelve true si lo encuentra o false en caso contrario 
          */
-        function existeRole(int $codRole):bool
-        {
-            
-        }
+        function existeRole(int $codRole): bool
+{
+    return isset($this->_roles[$codRole]);
+}
 
         /**
          * Función que devuelve los permisos de un role dado
@@ -233,11 +234,10 @@ include_once(dirname(__FILE__) . "../librerias/validacion.php");
          * @param integer $codUsuario Código del usuario a verificar
          * @return boolean Devuelve si existe o no el usuario
          */
-        function existeCodUsuario(int $codUsuario):bool
-        {
-            
-        }
-
+        function existeCodUsuario(int $codUsuario): bool
+{
+    return isset($this->_usuarios[$codUsuario]);
+}
         /**
          * Verifica si existe o no un usuario con el nick dado
          *
@@ -245,10 +245,15 @@ include_once(dirname(__FILE__) . "../librerias/validacion.php");
          * @return boolean Devuelve true si encuentra el usuario y 
          * false en caso contrario
          */
-        function existeUsuario(string $nick):bool
-        {
-               
+       function existeUsuario(string $nick): bool
+{
+    foreach ($this->_usuarios as $usuario) {
+        if ($usuario['nick'] === $nick) {
+            return true;
         }
+    }
+    return false;
+}
 
         /**
          * Función que comprueba que existe un usuario y la contraseña indicada es la correcta
@@ -286,10 +291,15 @@ include_once(dirname(__FILE__) . "../librerias/validacion.php");
          * @return boolean Devuelve true si existe el usuario y tiene el permiso. 
          * False en otro caso
          */
-        function getPermiso(int $codUsuario, int $numero):bool
-        {
+        function getPermiso(int $codUsuario, int $numero): bool
+{
+    if (!isset($this->_usuarios[$codUsuario])) {
+        return false; // usuario no existe
+    }
 
-        }
+    // comprobamos si el permiso está en el array de permisos
+    return in_array($numero, $this->_usuarios[$codUsuario]['permisos']);
+}
 
         /**
          * Función que devuelve los permisos de un usuario
@@ -298,11 +308,14 @@ include_once(dirname(__FILE__) . "../librerias/validacion.php");
          * @return array|false Devuelve los permisos del usuario o false si 
          * no existe el usuario
          */
-        function getPermisos(int $codUsuario):array|false
-        {
+        function getPermisos(int $codUsuario): array|false
+{
+    if (!isset($this->_usuarios[$codUsuario])) {
+        return false; // usuario no existe
+    }
 
-
-        }
+    return $this->_usuarios[$codUsuario]['permisos'];
+}
 
         /**
          * Función que devuelve el nombre de un usuario
@@ -326,11 +339,15 @@ include_once(dirname(__FILE__) . "../librerias/validacion.php");
          * @return boolean true si el usuario existe y no está borrado.
          * False en otro caso
          */
-        function getBorrado(int $codUsuario):bool
-        {
+       function getBorrado(int $codUsuario): bool
+{
+    if (!isset($this->_usuarios[$codUsuario])) {
+        return false; // el usuario no existe
+    }
 
-
-        }
+    // si existe, devolvemos true solo si NO está borrado
+    return $this->_usuarios[$codUsuario]['borrado'] === false;
+}
 
         /**
          * Devuelve el role que tiene un usuario concreto
@@ -447,14 +464,33 @@ include_once(dirname(__FILE__) . "../librerias/validacion.php");
          *
          * @return array Array con todos los roles existentes
          */
-        function dameRoles():array
-        {
-            $roles=[];
+    function dameRoles():array
+    {
+        $roles=[];
 
-            foreach($this->_roles as $clave=>$role)
-                $roles[$clave]=$role["nombre"];
+        foreach($this->_roles as $clave=>$role)
+            $roles[$clave]=$role["nombre"];
 
-            return $roles;
-        }
-
+        return $roles;
     }
+
+   
+    /**
+ * Valida si un usuario existe con el nick y contraseña dados
+ *
+ * @param string $nick Nick del usuario
+ * @param string $password Contraseña del usuario
+ * @return bool Devuelve true si coincide, false en caso contrario
+ */
+public function validarUsuario(string $nick, string $password): bool
+{
+    foreach ($this->_usuarios as $usuario) {
+        // comprobamos que exista la clave 'password' para evitar warnings
+        if ($usuario['nick'] === $nick && isset($usuario['password']) && $usuario['password'] === $password) {
+            return true;
+        }
+    }
+    return false;
+}
+
+}

@@ -1,6 +1,19 @@
 <?php
 include_once(dirname(__FILE__) . "/../../cabecera.php");
 
+if (!$acceso->hayUsuario()) {
+    header("Location: /aplicacion/acceso/login.php");
+    exit;
+}
+if (!$acceso->puedePermiso(1)) {
+    paginaError("No tienes permiso para acceder a esta página");
+    exit;
+}
+if (!$acceso->puedePermiso(2)) {
+    paginaError("No tienes permiso para configurar los colores");
+    exit;
+}
+
 // Si el formulario se envía, actualizar cookies
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (isset($_POST["color_fondo"])) {

@@ -2,6 +2,17 @@
 include_once(dirname(__FILE__) . "/../../cabecera.php");
 include_once(dirname(__FILE__) . "/../clases/RegistroTexto.php");
 
+if (!$acceso->hayUsuario()) {
+    header("Location: /aplicacion/acceso/login.php");
+    exit;
+}
+if (!$acceso->puedePermiso(1)) {
+    paginaError("No tienes permiso para acceder a esta página");
+    exit;
+}
+
+
+
 // Recuperar textos de la sesión
 $textos = $_SESSION['textos'] ?? [];
 
