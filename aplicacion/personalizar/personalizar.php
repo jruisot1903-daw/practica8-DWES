@@ -1,33 +1,24 @@
 <?php
 include_once(dirname(__FILE__) . "/../../cabecera.php");
 
-if (!$acceso->hayUsuario()) {
-    header("Location: /aplicacion/acceso/login.php");
-    exit;
-}
-if (!$acceso->puedePermiso(1)) {
-    paginaError("No tienes permiso para acceder a esta página");
-    exit;
-}
-if (!$acceso->puedePermiso(2)) {
-    paginaError("No tienes permiso para configurar los colores");
-    exit;
+if (!$ACCESO->puedePermiso(2)) {
+    paginaError("No tienes permisos para personalizar la aplicación.");
+    exit();
 }
 
-// Si el formulario se envía, actualizar cookies
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    if (isset($_POST["color_fondo"])) {
-        setcookie("color_fondo", $_POST["color_fondo"], time() + 3600*24*30, "/");
-        $_COOKIE["color_fondo"] = $_POST["color_fondo"]; // actualizar en esta carga
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!isset($_POST['colorFondo']) || !isset($_POST['colorTexto'])) {
+        die("Faltan datos en el formulario.");
     }
-    if (isset($_POST["color_texto"])) {
-        setcookie("color_texto", $_POST["color_texto"], time() + 3600*24*30, "/");
-        $_COOKIE["color_texto"] = $_POST["color_texto"];
-    }
+
+    setcookie('colorFondo', $_POST['colorFondo'], time() + (86400 * 30), "/"); // 30 días
+    setcookie('colorTexto', $_POST['colorTexto'], time() + (86400 * 30), "/"); // 30 días
+
+    // Actualizar la página para aplicar los cambios
+    header("Location: /aplicacion/personalizar/personalizar.php");
+    exit();
 }
 
-
-// Plantilla
 inicioCabecera("Personalizar");
 cabecera();
 finCabecera();
@@ -36,33 +27,35 @@ inicioCuerpo("Personalizar");
 cuerpo();
 finCuerpo();
 
-// Vista
 function cabecera() {}
 
-function cuerpo() {
-    ?>
-    <form method="post" action="personalizar.php">
-        <label>Color de fondo:</label>
-        <select name="color_fondo">
-            <?php foreach(COLORESFONDO as $nombre=>$valor){ ?>
-                <option value="<?= $valor ?>" <?= ($_COOKIE['color_fondo'] ?? "white") == $valor ? "selected" : "" ?>>
-                    <?= $nombre ?>
-                </option>
-            <?php } ?>
+function cuerpo()
+{
+?>
+    <h1>Personalizar la Aplicación</h1>
+    <p>Aquí puedes personalizar la aplicación según tus preferencias.</p>
+    <form action="" method="post">
+        <label for="colorFondo">Color de Fondo:</label>
+        <select name="colorFondo" id="colorFondo">
+            <?php
+            foreach (COLORESFONDO as $nombre => $valor) {
+                $selected = ($nombre === $_COOKIE['colorFondo']) ? 'selected' : '';
+                echo "<option value='$nombre' $selected>$nombre</option>";
+            }
+            ?>
         </select>
-        <br><br>
-
-        <label>Color de texto:</label>
-        <select name="color_texto">
-            <?php foreach(COLORESTEXTO as $nombre=>$valor){ ?>
-                <option value="<?= $valor ?>" <?= ($_COOKIE['color_texto'] ?? "black") == $valor ? "selected" : "" ?>>
-                    <?= $nombre ?>
-                </option>
-            <?php } ?>
+        <br>
+        <label for="colorTexto">Color de Texto:</label>
+        <select name="colorTexto" id="colorTexto">
+            <?php
+            foreach (COLORESTEXTO as $nombre => $valor) {
+                $selected = ($nombre === $_COOKIE['colorTexto']) ? 'selected' : '';
+                echo "<option value='$nombre' $selected>$nombre</option>";
+            }
+            ?>
         </select>
-        <br><br>
-
-        <input type="submit" value="Guardar preferencias">
+        <br>
+        <input type="submit" value="Guardar">
     </form>
-    <?php
+<?php
 }

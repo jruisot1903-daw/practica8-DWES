@@ -1,5 +1,13 @@
 <?php
-function paginaError(string $mensaje)
+if (!isset($_COOKIE['colorFondo'])) {
+    setcookie('colorFondo', FONDO_DEFECTO, time() + (86400 * 30), "/"); // 30 días
+}
+
+if (!isset($_COOKIE['colorTexto'])) {
+    setcookie('colorTexto', TEXTO_DEFECTO, time() + (86400 * 30), "/"); // 30 días
+}
+
+function paginaError($mensaje)
 {
     header("HTTP/1.0 404 $mensaje");
     inicioCabecera("PRACTICA");
@@ -10,11 +18,11 @@ function paginaError(string $mensaje)
     echo "<br />\n";
     echo "<br />\n";
     echo "<br />\n";
-    echo "<a href='/index.php'>Ir a la pagina principal</a>\n";
+    echo "<a href='/'>Ir a la pagina principal</a>\n";
 
     finCuerpo();
 }
-function inicioCabecera(String $titulo)
+function inicioCabecera($titulo)
 {
 ?>
     <!DOCTYPE html>
@@ -22,19 +30,20 @@ function inicioCabecera(String $titulo)
 
     <head>
         <meta charset="utf-8">
-        <!-- Always force latest IE rendering engine (even inintranet) & Chrome Frame
-        Remove this if you use the .htaccess -->
+        <!-- Always force latest IE rendering engine (even in
+intranet) & Chrome Frame
+ Remove this if you use the .htaccess -->
         <meta http-equiv="X-UA-Compatible"
             content="IE=edge,chrome=1">
-        <title><?php echo $titulo ?></title>
+        <title><?php echo $titulo; ?></title>
         <meta name="description" content="">
         <meta name="author" content="Administrador">
         <meta name="viewport" content="width=device-width; initialscale=1.0">
-        <!-- Replace favicon.ico & apple-touch-icon.png in the root
-of your domain and delete these references -->
         <link rel="icon" type="image/png" href="/favicon.png">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-        <link rel="stylesheet" type="text/css" href="/estilos/base.css">
+
+        <link rel="stylesheet" type="text/css"
+            href="/estilos/base.css">
     <?php
 }
 function finCabecera()
@@ -43,88 +52,100 @@ function finCabecera()
     </head>
 <?php
 }
+
+// Convierte un segmento de URL en una etiqueta legible
 function prettyLabel(string $seg): string
 {
     $label = urldecode($seg);
     $label = str_replace(['-', '_'], ' ', $label);
     return htmlspecialchars(mb_convert_case($label, MB_CASE_TITLE, "UTF-8"), ENT_QUOTES, 'UTF-8');
 }
-function inicioCuerpo(String $cabecera)
+
+function inicioCuerpo($cabecera)
 {
-    global $acceso;
-    require_once(dirname(__FILE__) . "/../../cabecera.php");
-    inicio_cuerpo();    
-    global $acceso;
-    $url = $_SERVER['REQUEST_URI'];
-    $path = parse_url($url, PHP_URL_PATH);
-    $partes = array_values(array_filter(explode("/", trim($path))));
+    global $ACCESO, $PATH;
+
+    $cookie_colorFondo = $_COOKIE['colorFondo'];
+    $cookie_colorTexto = $_COOKIE['colorTexto'];
+
+    // Dividir el path en partes y filtrar las vacías
+    $partes = array_values(array_filter(explode('/', trim($PATH, '/'))));
+
+    // Eliminar 'index.php' si está presente al final
+    $partes = array_filter($partes, fn($value) => $value !== 'index.php');
 ?>
 
-    <body>
+    <body style="
+        background-color:<?php echo COLORESFONDO[$cookie_colorFondo]; ?>;
+        color: <?php echo COLORESTEXTO[$cookie_colorTexto]; ?>;
+    ">
         <div id="documento">
 
             <header>
                 <h1 id="titulo"><?php echo $cabecera; ?></h1>
-
-                <nav class="barraUbi" aria-label="Ruta de navegación">
-                    <?php
-                    $partes = array_filter($partes, fn($v) => $v !== 'index.php');
-                    $total = count($partes);
-
-                    if ($total == 0) {
-                        echo '<span aria-current="page">Inicio</span>';
-                    } else {
-                        echo '<a href="/">Inicio</a>';
-                    }
-
-                    $acumulado = "";
-
-                    foreach ($partes as $i => $seg) {
-                        $acumulado .= '/' . $seg;
-                        $href = htmlspecialchars($acumulado . '/', ENT_QUOTES, 'UTF-8');
-                        $label = prettyLabel($seg);
-                        $esUltimo = ($i === $total - 1);
-
-                        echo '<span class="sep">››</span>';
-                        if ($esUltimo) {
-                            echo '<span aria-current="page">' . $label . '</span>';
-                        } else {
-                            echo '<a href="' . $href . '">' . $label . '</a>';
-                        }
-                    }
-                    ?>
-                </nav>
             </header>
 
             <div id="barraLogin">
-        <?php if ($acceso->hayUsuario()): ?>
-            Bienvenido, <?= htmlspecialchars($acceso->getNombre()); ?>
-            | <a href="/aplicacion/acceso/logout.php">Cerrar sesión</a>
-        <?php else: ?>
-            <a href="/aplicacion/acceso/login.php">Login</a>
-        <?php endif; ?>
+                <?php
+                if ($ACCESO->hayUsuario()) {
+                    $name = $ACCESO->getNombre();
+                    echo "¡Hola!, $name | <a href='/aplicacion/acceso/logout.php'>Logout</a>";
+                } else {
+                    echo "<a href='/aplicacion/acceso/login.php'>Login</a>";
+                }
+                ?>
             </div>
             <div id="barraMenu">
                 <ul>
                     <li><a href="/">Inicio</a></li>
+                    <li><a href="/aplicacion/personalizar/personalizar.php">Personalizar</a></li>
+                    <li><a href="/aplicacion/texto/verTextos.php">Ver Textos</a></li>
                 </ul>
             </div>
 
+            <nav class="breadcrumbs">
+                <?php
+                $total = count($partes);
+
+                if ($total == 0) {
+                    echo '<span aria-current="page">Inicio</span>';
+                } else {
+                    echo '<a href="/">Inicio</a>';
+                }
+
+                $acumulado = "";
+
+                foreach ($partes as $i => $seg) {
+                    $acumulado .= '/' . $seg;
+                    // Escapar la URL y la etiqueta
+                    $href = htmlspecialchars($acumulado . '/', ENT_QUOTES, 'UTF-8');
+                    $label = prettyLabel($seg);
+                    $esUltimo = ($i === $total - 1);
+
+                    // Separador
+                    echo '<span class="sep">›</span>';
+
+                    // Elemento del breadcrumb
+                    if ($esUltimo) {
+                        echo '<span aria-current="page">' . $label . '</span>';
+                    } else {
+                        echo '<a href="' . $href . '">' . $label . '</a>';
+                    }
+                }
+                ?>
+            </nav>
+
+            <br />
             <div>
             <?php
         }
+
         function finCuerpo()
         {
             ?>
                 <br />
                 <br />
             </div>
-            <footer>
-                <hr width="90%" />
-                <div>
-                    &copy; Copyright by Javier Ruiz Soto - 2DAW
-                </div>
-            </footer>
         </div>
     </body>
 
