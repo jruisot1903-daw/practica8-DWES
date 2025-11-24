@@ -148,7 +148,13 @@ include_once(dirname(__FILE__) . "/../librerias/validacion.php");
          */
         function getPermisoRole(int $codRole, int $numero): bool
         {
-              
+                if(!$this->existeRole($codRole))
+                    return false;
+                
+                if($numero < 1 || $numero > 10)
+                    return false ;
+
+                return $this-> _roles[$codRole]["permisos"][$numero];
         }
 
         /**
@@ -178,7 +184,7 @@ include_once(dirname(__FILE__) . "/../librerias/validacion.php");
     if (!$this->existeRole($codRole)) return false;
 
     // Contraseña encriptada
-    $contrasena = password_hash($contrasena, PASSWORD_DEFAULT);
+    $contrasena = password_hash($contrasena, PASSWORD_BCRYPT);
 
     // Buscar último código
     $cont = 0;
@@ -396,7 +402,7 @@ include_once(dirname(__FILE__) . "/../librerias/validacion.php");
     // Validar longitud de la contraseña
     if (!validaCadena($contrasenia, 50, "")) return false;
 
-    $this->_usuarios[$codUsuario]["contrasenia"] = password_hash($contrasenia, PASSWORD_DEFAULT);
+    $this->_usuarios[$codUsuario]["contrasenia"] = password_hash($contrasenia, PASSWORD_BCRYPT);
     return true;
 }
 
