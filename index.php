@@ -1,8 +1,11 @@
 <?php
 include_once(dirname(__FILE__) . "/cabecera.php");
 
-setcookie('visitas', (isset($_COOKIE['visitas']) ? $_COOKIE['visitas'] + 1 : 1), time() + (86400 * 30), "/"); // 30 días
-$visitas = $_COOKIE['visitas'] ? $_COOKIE['visitas'] + 1 : 1;
+// calcular visitas actuales
+$visitas = isset($_COOKIE['visitas']) ? $_COOKIE['visitas'] + 1 : 1;
+
+// guardar cookie para próximas visitas
+setcookie('visitas', $visitas, time() + (86400 * 30), "/"); // 30 días
 
 inicioCabecera("Relacion 8");
 cabecera();
