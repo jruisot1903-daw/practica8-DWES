@@ -73,8 +73,17 @@ if (!$ACCESO->hayUsuario() && !in_array($PATH, $PUBLIC_PATHS)) {
 include(RUTABASE . "/aplicacion/plantilla/plantilla.php");
 include(RUTABASE . "/aplicacion/config/acceso_bd.php");
 
+
+// gestión bd
+
+mysqli_report(MYSQLI_REPORT_ERROR); // para que no nos lance exepcciones y no se pare la ejecución
+
+
 // Verificar permisos de acceso a la página
 if ($ACCESO->hayUsuario() && !in_array($PATH, $PUBLIC_PATHS) && !$ACCESO->puedePermiso(1)) {
     paginaError("No tienes permisos para acceder a esta página.");
     exit();
 }
+
+
+

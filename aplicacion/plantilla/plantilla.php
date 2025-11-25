@@ -100,6 +100,7 @@ function inicioCuerpo($cabecera)
                     <li><a href="/">Inicio</a></li>
                     <li><a href="/aplicacion/personalizar/personalizar.php">Personalizar</a></li>
                     <li><a href="/aplicacion/texto/verTextos.php">Ver Textos</a></li>
+                    <li><a href="/aplicacion/usuarios">Ver usuarios</a></li>
                 </ul>
             </div>
 

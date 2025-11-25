@@ -34,7 +34,7 @@ class ACLArray extends ACLBase
     {
         //añade los roles
         $this->anadirRole("normales", [1 => true]);
-        $this->anadirRole("administradores", [1 => true, 2 => true]);
+        $this->anadirRole("administradores", [1 => true, 2 => true,3 => true]);
 
         //añade los usuario
         $this->anadirUsuario(
