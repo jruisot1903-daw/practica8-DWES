@@ -65,7 +65,6 @@ finCuerpo();
 
 //Vista
 function cabecera() {
-    echo "<h2>Listado de usuarios</h2>";
 }
 
 //Vista
@@ -74,9 +73,10 @@ function cuerpo(array $filas, Acceso $ACCESO) {
         echo "<p>No hay usuarios registrados.</p>";
         return;
     }
+    echo "<h2>Listado de usuarios</h2>";
 
     echo "<table border='1' cellpadding='5' cellspacing='0'>";
-    echo "<tr><th>ID</th><th>Nombre</th><th>Email</th>";
+    echo "<tr><th>Nick</th><th>Nombre</th><th>NIF</th><th>Dirección</th><th>Población</th><th>Provincia</th><th>CP</th><th>FechaNacimiento</th><th>Borrado</th><th>Foto</th>";
 
     // Si el usuario tiene permiso de edición (3), añadimos columna de acciones
     if ($ACCESO->puedePermiso(3)) {
@@ -86,17 +86,31 @@ function cuerpo(array $filas, Acceso $ACCESO) {
 
     foreach ($filas as $fila) {
         echo "<tr>";
-        echo "<td>{$fila['id']}</td>";
-        echo "<td>{$fila['nombre']}</td>";
-        echo "<td>{$fila['email']}</td>";
+    echo "<td>{$fila['nick']}</td>";
+    echo "<td>{$fila['nombre']}</td>";
+    echo "<td>{$fila['nif']}</td>";
+    echo "<td>{$fila['direccion']}</td>";
+    echo "<td>{$fila['poblacion']}</td>";
+    echo "<td>{$fila['provincia']}</td>";
+    echo "<td>{$fila['CP']}</td>";
+    echo "<td>{$fila['fecha_nacimiento']}</td>";
+    echo "<td>{$fila['borrado']}</td>";
+    echo "<td>{$fila['foto']}</td>";
 
-        if ($ACCESO->puedePermiso(3)) {
-            echo "<td><a href='editar.php?id={$fila['id']}'>Editar</a> | ";
-            echo "<a href='borrar.php?id={$fila['id']}'>Borrar</a></td>";
-        }
-
-        echo "</tr>";
+         if ($ACCESO->puedePermiso(3)) {
+        echo "<td>
+                <a href='verUsuario.php?id={$fila['cod_usuario']}'>Ver</a> 
+                <a href='modificarUsuario.php?id={$fila['cod_usuario']}'>Editar</a> 
+                <a href='borrarUsuario.php?id={$fila['cod_usuario']}'>Borrar</a>
+              </td>";
     }
 
+    echo "</tr>";
+}
+
     echo "</table>";
+    
+    if ($ACCESO->puedePermiso(3)) {
+    echo "<p><a href='nuevoUsuario.php'>Nuevo usuario</a></p>";
+}
 }
