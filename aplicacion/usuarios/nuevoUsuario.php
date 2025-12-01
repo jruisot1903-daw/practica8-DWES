@@ -5,10 +5,11 @@ include_once(dirname(__FILE__) . "/../../cabecera.php");
 if (!$ACCESO->puedePermiso(2)) {
     paginaError("No tienes permiso para acceder a esta página de la base de datos.");
     exit;
-}else if(!$ACCESO->puedePermiso(3)){
+} else if (!$ACCESO->puedePermiso(3)) {
     paginaError("No tienes permiso para acceder a esta página de la base de datos.");
     exit;
 }
+
 // --- Conexión BD ---
 $bd = new mysqli($servidor, $usuario, $contrasenia, $baseDatos);
 if ($bd->connect_errno) {
@@ -21,15 +22,20 @@ $bd->set_charset("utf8");
 $errores = [];
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Recogemos datos
-    $nick   = trim($_POST['nick'] ?? "");
-    $nombre = trim($_POST['nombre'] ?? "");
-    $nif    = trim($_POST['nif'] ?? "");
-    $direccion = trim($_POST['direccion'] ?? "");
-    $poblacion = trim($_POST['poblacion'] ?? "");
-    $provincia = trim($_POST['provincia'] ?? "");
-    $CP     = trim($_POST['CP'] ?? "");
-    $fechaNac = trim($_POST['fecha_nacimiento'] ?? "");
-    $borrado = 0; // por defecto no borrado
+    $nick       = trim($_POST['nick'] ?? "");
+    $nombre     = trim($_POST['nombre'] ?? "");
+    $nif        = trim($_POST['nif'] ?? "");
+    $direccion  = trim($_POST['direccion'] ?? "");
+    $poblacion  = trim($_POST['poblacion'] ?? "");
+    $provincia  = trim($_POST['provincia'] ?? "");
+    $CP         = trim($_POST['CP'] ?? "");
+    $fechaNac   = trim($_POST['fecha_nacimiento'] ?? "");
+    $borrado    = 0; // por defecto no borrado
+
+    // --- ACL: contraseña y rol ---
+    $password        = trim($_POST['password'] ?? "");
+    $passwordConfirm = trim($_POST['password_confirm'] ?? "");
+    $idRol           = (int)($_POST['rol'] ?? 0);
 
     // Validaciones básicas
     if ($nick == "") $errores[] = "El nick es obligatorio";
@@ -37,11 +43,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($nif == "") $errores[] = "El NIF es obligatorio";
     if (!preg_match("/^[0-9]{5}$/", $CP)) $errores[] = "El código postal debe tener 5 dígitos";
 
+    if ($password == "" || $passwordConfirm == "") {
+        $errores[] = "La contraseña es obligatoria";
+    } elseif ($password !== $passwordConfirm) {
+        $errores[] = "Las contraseñas no coinciden";
+    }
+
     // --- Foto ---
     $fotoNombre = "default.jpg"; // foto por defecto
     if (isset($_FILES['foto']) && $_FILES['foto']['error'] == UPLOAD_ERR_OK) {
         $ext = pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION);
-        $fotoNombre = bin2hex(random_bytes(10)) . "." . $ext; // nombre aleatorio de 20 caracteres
+        $fotoNombre = bin2hex(random_bytes(10)) . "." . $ext;
         $destino = __DIR__ . "/../../imagenes/fotos/" . $fotoNombre;
         if (!move_uploaded_file($_FILES['foto']['tmp_name'], $destino)) {
             $errores[] = "Error al subir la foto";
@@ -55,9 +67,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             VALUES (?,?,?,?,?,?,?,?,?,?)");
         $stmt->bind_param("ssssssssss", $nick,$nombre,$nif,$direccion,$poblacion,$provincia,$CP,$fechaNac,$borrado,$fotoNombre);
         if ($stmt->execute()) {
-            $idInsertado = $stmt->insert_id;
-            header("Location: verUsuario.php?id=" . $idInsertado);
-            exit;
+            // --- ACL: insertar también en acl_usuarios ---
+            if ($ACL->existeUsuario($nick)) {
+                $errores[] = "El Nick ya existe en la ACL, no se puede crear.";
+            } else {
+                if (!$ACL->insertarUsuario($nick, $nombre, $password, $idRol)) {
+                    $errores[] = "Fallo al insertar en la ACL.";
+                }
+            }
+
+            if (empty($errores)) {
+                $idInsertado = $stmt->insert_id;
+                header("Location: verUsuario.php?id=" . $idInsertado);
+                exit;
+            }
         } else {
             $errores[] = "Fallo al insertar en la BD: " . $bd->error;
         }
@@ -70,14 +93,13 @@ cabecera();
 finCabecera();
 
 inicioCuerpo("Nuevo Usuario");
-cuerpo($errores);
+cuerpo($errores, $ROLES);
 finCuerpo();
 
 // --- Vista ---
-function cabecera() {
-}
+function cabecera() {}
 
-function cuerpo($errores) {
+function cuerpo($errores, array $ROLES) {
     if (!empty($errores)) {
         echo "<ul style='color:red'>";
         foreach ($errores as $e) {
@@ -96,9 +118,22 @@ function cuerpo($errores) {
         CP: <input type="text" name="CP" value="<?=htmlspecialchars($_POST['CP'] ?? '')?>"><br>
         Fecha nacimiento: <input type="date" name="fecha_nacimiento" value="<?=htmlspecialchars($_POST['fecha_nacimiento'] ?? '')?>"><br>
         Foto: <input type="file" name="foto"><br>
+
+        <!-- ACL: contraseña y rol -->
+        Contraseña: <input type="password" name="password"><br>
+        Confirmar contraseña: <input type="password" name="password_confirm"><br>
+        Rol:
+        <select name="rol">
+            <?php
+            foreach ($ROLES as $rol) {
+                $selected = ($_POST['rol'] ?? '') == $rol['cod_acl_role'] ? "selected" : "";
+                echo "<option value='{$rol['cod_acl_role']}' $selected>{$rol['nombre']}</option>";
+            }
+            ?>
+        </select><br>
+
         <input type="submit" value="Guardar">
     </form>
     <?php
-     echo "<br><a href='index.php'>Volver al inicio</a>";
-
+    echo "<br><a href='index.php'>Volver al inicio</a>";
 }

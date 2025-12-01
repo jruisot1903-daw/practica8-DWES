@@ -72,7 +72,7 @@ if (!$ACCESO->hayUsuario() && !in_array($PATH, $PUBLIC_PATHS)) {
 
 include(RUTABASE . "/aplicacion/plantilla/plantilla.php");
 include(RUTABASE . "/aplicacion/config/acceso_bd.php");
-
+include_once(dirname(__FILE__) . "/scripts/clases/ACLBD.php");
 
 // gestión bd
 
@@ -84,6 +84,22 @@ if ($ACCESO->hayUsuario() && !in_array($PATH, $PUBLIC_PATHS) && !$ACCESO->puedeP
     paginaError("No tienes permisos para acceder a esta página.");
     exit();
 }
+
+// Creamos objeto ACLBD global
+$ACL = new ACLBD($servidor, $usuario, $contrasenia, $baseDatos);
+
+
+// Insertar roles solo si la tabla está vacía
+if ($ACL->contarRoles() == 0) {
+    $ACL->insertarRol("normales", [1 => true]);
+    $ACL->insertarRol("administradores", [1 => true, 2 => true]);
+    $ACL->insertarRol("superadmin", [1 => true, 2 => true, 3 => true]);
+}
+
+// Cargamos roles disponibles una sola vez
+$ROLES = $ACL->listarRoles();
+
+
 
 
 

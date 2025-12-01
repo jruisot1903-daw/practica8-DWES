@@ -23,9 +23,8 @@ if ($cod_usuario <= 0) {
 }
 
 // --- Cargamos datos actuales ---
-
-$sentencia = "SELECT nick,nombre,nif,direccion,poblacion,provincia,CP,fecha_nacimiento,foto 
-                      FROM usuarios WHERE cod_usuario=? AND borrado=0";
+$sentencia = "SELECT cod_usuario,nick,nombre,nif,direccion,poblacion,provincia,CP,fecha_nacimiento,foto 
+              FROM usuarios WHERE cod_usuario=? AND borrado=0";
 $fila = $bd->prepare($sentencia);
 $fila->bind_param("i", $cod_usuario);
 $fila->execute();
@@ -36,6 +35,9 @@ if (!$usuario) {
     paginaError("El usuario no existe");
     exit;
 }
+
+// --- Obtener rol actual desde ACL ---
+$rolActual = $ACL->obtenerRolUsuario($usuario['nick']);
 
 // --- Procesamiento del formulario ---
 $errores = [];
@@ -49,6 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $CP         = trim($_POST['CP'] ?? "");
     $fechaNac   = trim($_POST['fecha_nacimiento'] ?? "");
     $fotoNombre = $usuario['foto']; // mantenemos la actual si no se sube nueva
+    $idRol      = (int)($_POST['rol'] ?? $rolActual['id_rol']);
 
     // Validaciones
     if ($nombre == "") $errores[] = "El nombre es obligatorio";
@@ -72,6 +75,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             WHERE cod_usuario=?");
         $stmt->bind_param("ssssssssi", $nombre,$nif,$direccion,$poblacion,$provincia,$CP,$fechaNac,$fotoNombre,$cod_usuario);
         if ($stmt->execute()) {
+            // --- ACL: sincronizar nombre y rol ---
+            $ACL->modificarNombre($usuario['nick'], $nombre);
+            $ACL->asignarRol($usuario['nick'], $idRol);
+
             header("Location: verUsuario.php?id=" . $cod_usuario);
             exit;
         } else {
@@ -86,14 +93,13 @@ cabecera();
 finCabecera();
 
 inicioCuerpo("Modificar Usuario");
-cuerpo($usuario, $errores);
+cuerpo($usuario, $rolActual, $ROLES, $errores);
 finCuerpo();
 
 // --- Vista ---
-function cabecera() {
-}
+function cabecera() {}
 
-function cuerpo($usuario, $errores) {
+function cuerpo($usuario, $rolActual, array $ROLES, $errores) {
     if (!empty($errores)) {
         echo "<ul style='color:red'>";
         foreach ($errores as $e) {
@@ -111,9 +117,20 @@ function cuerpo($usuario, $errores) {
         CP: <input type="text" name="CP" value="<?=htmlspecialchars($_POST['CP'] ?? $usuario['CP'])?>"><br>
         Fecha nacimiento: <input type="date" name="fecha_nacimiento" value="<?=htmlspecialchars($_POST['fecha_nacimiento'] ?? $usuario['fecha_nacimiento'])?>"><br>
         Nueva foto: <input type="file" name="foto"><br><br>
+
+        Rol:
+        <select name="rol">
+            <?php
+            foreach ($ROLES as $rol) {
+                $selected = ($_POST['rol'] ?? $rolActual['cod_acl_role']) == $rol['cod_acl_role'] ? "selected" : "";
+                echo "<option value='{$rol['cod_acl_role']}' $selected>{$rol['nombre']}</option>";
+            }
+            ?>
+        </select><br><br>
+
         <input type="submit" value="Guardar cambios">
     </form>
     <?php
     echo "<br><a href='index.php'>Cancelar</a> | ";
-    echo "<a href='verUsuario.php?id=" . urlencode($usuario['nick']) . "'>Ver Usuario</a>";
+    echo "<a href='verUsuario.php?id=" . urlencode($usuario['cod_usuario']) . "'>Ver Usuario</a>";
 }

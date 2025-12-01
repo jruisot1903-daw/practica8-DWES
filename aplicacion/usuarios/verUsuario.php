@@ -22,9 +22,11 @@ if (!$cod_usuario) {
     exit;
 }
 
-// --- Comprobar que existe ---
-$sentencia = "SELECT nick,nombre,nif,direccion,poblacion,provincia,CP,fecha_nacimiento,foto 
-                      FROM usuarios WHERE cod_usuario=? AND borrado=0";
+// --- Comprobar que existe en ACL ---
+$sentencia = "SELECT nick, nombre,nif, direccion, poblacion, provincia, CP, 
+                     fecha_nacimiento, foto, password
+              FROM usuarios 
+              WHERE cod_usuario=? AND borrado=0";
 $fila = $bd->prepare($sentencia);
 $fila->bind_param("i", $cod_usuario);
 $fila->execute();
@@ -36,20 +38,22 @@ if (!$usuario) {
     exit;
 }
 
+// --- Obtener rol desde ACL (usando objeto global $ACL) ---
+$rol = $ACL->obtenerRolUsuario($usuario['nick']);
+
 // ------------------- VISTA -------------------
 inicioCabecera("Ver Usuario");
 cabecera();
 finCabecera();
 
 inicioCuerpo("Ver Usuario");
-cuerpo($usuario, $ACCESO);
+cuerpo($usuario, $rol, $ACCESO);
 finCuerpo();
 
 // --- Vista ---
-function cabecera() {
-}
+function cabecera() {}
 
-function cuerpo($usuario, Acceso $ACCESO) {
+function cuerpo($usuario, $rol, Acceso $ACCESO) {
     ?>
     <form>
         Nick: <input type="text" value="<?=htmlspecialchars($usuario['nick'])?>" readonly><br>
@@ -63,13 +67,14 @@ function cuerpo($usuario, Acceso $ACCESO) {
         Foto: 
         <img src="../../imagenes/fotos/<?=empty($usuario['foto']) ? 'default.png' : htmlspecialchars($usuario['foto'])?>" 
              alt="foto" width="100"><br>
+        Rol: <input type="text" value="<?=htmlspecialchars($rol['nombre'] ?? 'Sin rol')?>" readonly><br>
     </form>
     <br>
     <?php
     // Enlaces según permisos
-     if ($ACCESO->puedePermiso(3)) {
-            echo "<a href='modificarUsuario.php?id=" . urlencode($_GET['id']) . "'>Modificar</a> | ";
-            echo "<a href='borrarUsuario.php?id=" . urlencode($_GET['id']) . "'>Borrar</a> | ";
-        }
+    if ($ACCESO->puedePermiso(3)) {
+        echo "<a href='modificarUsuario.php?id=" . urlencode($_GET['id']) . "'>Modificar</a> | ";
+        echo "<a href='borrarUsuario.php?id=" . urlencode($_GET['id']) . "'>Borrar</a> | ";
+    }
     echo "<a href='index.php'>Cancelar</a>";
 }
