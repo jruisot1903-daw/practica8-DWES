@@ -132,7 +132,9 @@ function cuerpo(array $filas, Acceso $ACCESO)
         echo "<td>{$fila['CP']}</td>";
         echo "<td>{$fila['fecha_nacimiento']}</td>";
         echo "<td>{$fila['borrado']}</td>";
-        echo "<td>{$fila['foto']}</td>";
+        echo "<td>" . (($fila['foto'] === "" || $fila['foto'] === null) ? "default.png" : $fila['foto']) . "</td>";
+
+
 
         if ($ACCESO->puedePermiso(3)) {
             echo "<td>

@@ -35,9 +35,13 @@ CREATE TABLE IF NOT EXISTS `acl_roles` (
   `perm10` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`cod_acl_role`),
   UNIQUE KEY `nombre` (`nombre`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_spanish2_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_spanish2_ci;
 
--- Volcando datos para la tabla practica9.acl_roles: ~0 rows (aproximadamente)
+-- Volcando datos para la tabla practica9.acl_roles: ~3 rows (aproximadamente)
+INSERT INTO `acl_roles` (`cod_acl_role`, `nombre`, `perm1`, `perm2`, `perm3`, `perm4`, `perm5`, `perm6`, `perm7`, `perm8`, `perm9`, `perm10`) VALUES
+	(1, 'normales', 1, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+	(2, 'administradores', 1, 1, 0, 0, 0, 0, 0, 0, 0, 0),
+	(3, 'superadmin', 1, 1, 1, 0, 0, 0, 0, 0, 0, 0);
 
 -- Volcando estructura para tabla practica9.acl_usuarios
 CREATE TABLE IF NOT EXISTS `acl_usuarios` (
@@ -51,9 +55,11 @@ CREATE TABLE IF NOT EXISTS `acl_usuarios` (
   UNIQUE KEY `uq_acl_roles_1` (`nick`),
   KEY `cod_acl_role` (`cod_acl_role`),
   CONSTRAINT `fk_acl_roles_1` FOREIGN KEY (`cod_acl_role`) REFERENCES `acl_roles` (`cod_acl_role`) ON DELETE NO ACTION ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_spanish2_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_spanish2_ci;
 
--- Volcando datos para la tabla practica9.acl_usuarios: ~0 rows (aproximadamente)
+-- Volcando datos para la tabla practica9.acl_usuarios: ~1 rows (aproximadamente)
+INSERT INTO `acl_usuarios` (`cod_acl_usuario`, `nick`, `nombre`, `contrasenia`, `cod_acl_role`, `borrado`) VALUES
+	(1, 'Javirs', 'javi', 'Usuario1234', 3, 0);
 
 -- Volcando estructura para tabla practica9.usuarios
 CREATE TABLE IF NOT EXISTS `usuarios` (
@@ -69,13 +75,13 @@ CREATE TABLE IF NOT EXISTS `usuarios` (
   `borrado` tinyint(4) NOT NULL DEFAULT 0,
   `foto` varchar(50) NOT NULL DEFAULT '',
   PRIMARY KEY (`cod_usuario`),
-  UNIQUE KEY `nick_unico` (`nick`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_spanish2_ci COMMENT='tabla donde tendremos a los usuarios del sistema ';
+  UNIQUE KEY `nick_unico` (`nick`),
+  CONSTRAINT `FK_NICK_ACL` FOREIGN KEY (`nick`) REFERENCES `acl_usuarios` (`nick`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_spanish2_ci COMMENT='tabla donde tendremos a los usuarios del sistema ';
 
--- Volcando datos para la tabla practica9.usuarios: ~3 rows (aproximadamente)
+-- Volcando datos para la tabla practica9.usuarios: ~1 rows (aproximadamente)
 INSERT INTO `usuarios` (`cod_usuario`, `nick`, `nombre`, `nif`, `direccion`, `poblacion`, `provincia`, `CP`, `fecha_nacimiento`, `borrado`, `foto`) VALUES
-	(1, 'Javirs', 'Javi', '12345678O', 'C/Inventada', 'Inventada', 'Inventada', '00001', '2025-03-23', 0, ''),
-	(2, 'Pepito', 'Pepe', '87654321Q', 'C/incvvent', 'Invent', 'Invent', '00002', '2000-02-20', 0, '');
+	(6, 'Javirs', 'javi', '12345678P', 'Calle Nueva', 'V.Algaidas', 'malaga', '23415', '2004-03-19', 0, '');
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
