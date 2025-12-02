@@ -22,14 +22,19 @@ $bd->set_charset("utf8");
 // Sentencia SQL
 $sentSelect = "*";
 $sentFrom   = "usuarios";
-$sentWhere  = "";
+$sentWhere  = "WHERE borrado=0"; // por defecto solo activos
 $sentOrder  = "";
 
-
+// Filtros
 if (!empty($_POST['filtro']) && !empty($_POST['campo'])) {
     $filtro = $bd->real_escape_string($_POST['filtro']);
     $campo  = $bd->real_escape_string($_POST['campo']);
-    $sentWhere = "WHERE $campo LIKE '%$filtro%'";
+    // Si el campo es borrado, permitimos filtrar también por 1
+    if ($campo === "borrado") {
+        $sentWhere = "WHERE borrado=" . (int)$filtro;
+    } else {
+        $sentWhere = "WHERE $campo LIKE '%$filtro%'";
+    }
 }
 
 if (!empty($_POST['orden'])) {
@@ -113,13 +118,9 @@ function cuerpo(array $filas, Acceso $ACCESO)
             <th>CP</th>
             <th>FechaNacimiento</th>
             <th>Borrado</th>
-            <th>Foto</th>";
-
-    // Si el usuario tiene permiso de edición (3), añadimos columna de acciones
-    if ($ACCESO->puedePermiso(3)) {
-        echo "<th>Acciones</th>";
-    }
-    echo "</tr>";
+            <th>Foto</th>
+            <th>Acciones</th>
+          </tr>";
 
     foreach ($filas as $fila) {
         echo "<tr>";
@@ -132,17 +133,17 @@ function cuerpo(array $filas, Acceso $ACCESO)
         echo "<td>{$fila['CP']}</td>";
         echo "<td>{$fila['fecha_nacimiento']}</td>";
         echo "<td>{$fila['borrado']}</td>";
-        echo "<td>" . (($fila['foto'] === "" || $fila['foto'] === null) ? "default.png" : $fila['foto']) . "</td>";
+        echo "<td>" . (($fila['foto'] === "" || $fila['foto'] === null) ? "default.jpg" : $fila['foto']) . "</td>";
 
-
-
+        echo "<td>";
+        // Ver siempre disponible (permiso 2)
+        echo "<a href='verUsuario.php?id={$fila['cod_usuario']}'>Ver</a> ";
+        // Editar/Borrar solo si permiso 3
         if ($ACCESO->puedePermiso(3)) {
-            echo "<td>
-                <a href='verUsuario.php?id={$fila['cod_usuario']}'>Ver</a> 
-                <a href='modificarUsuario.php?id={$fila['cod_usuario']}'>Editar</a> 
-                <a href='borrarUsuario.php?id={$fila['cod_usuario']}'>Borrar</a>
-              </td>";
+            echo "<a href='modificarUsuario.php?id={$fila['cod_usuario']}'>Editar</a> ";
+            echo "<a href='borrarUsuario.php?id={$fila['cod_usuario']}'>Borrar</a>";
         }
+        echo "</td>";
 
         echo "</tr>";
     }

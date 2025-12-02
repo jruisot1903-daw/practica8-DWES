@@ -20,7 +20,6 @@ function cabecera() {}
 function cuerpo($visitas)
 {
 ?>
-    <h1>Relacion 8</h1>
     <p>Has visitado esta página <?php echo $visitas; ?> veces.</p>
 <?php
 }

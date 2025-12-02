@@ -22,10 +22,10 @@ if (empty($_GET['id'])) {
 }
 $id = (int)$_GET['id'];
 
-// Comprobamos que existe el usuario
-$consulta = $bd->query("SELECT * FROM usuarios WHERE cod_usuario = $id");
+// Comprobamos que existe el usuario y no está ya borrado
+$consulta = $bd->query("SELECT * FROM usuarios WHERE cod_usuario = $id AND borrado = 0");
 if (!$consulta || $consulta->num_rows == 0) {
-    paginaError("El usuario con id '$id' no existe.");
+    paginaError("El usuario con id '$id' no existe o ya está borrado.");
     exit;
 }
 $usuario = $consulta->fetch_assoc();
@@ -36,9 +36,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirmar'])) {
     $bd->query("UPDATE usuarios SET borrado = 1 WHERE cod_usuario = $id");
 
     // Borrado también en ACL (usando objeto global $ACL)
-    $ACL->borrarUsuario($usuario['nick']);
+    $acl->borrarUsuario($usuario['nick']);
 
-    echo "<p>El usuario <strong>{$usuario['nick']}</strong> ha sido borrado lógicamente y eliminado de la ACL.</p>";
+    echo "<p>El usuario <strong>{$usuario['nick']}</strong> ha sido marcado como borrado en la tabla de usuarios y en la ACL.</p>";
     echo "<p><a href='index.php'>Volver al listado</a></p>";
     exit;
 }

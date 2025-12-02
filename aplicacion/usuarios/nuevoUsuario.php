@@ -2,10 +2,7 @@
 include_once(dirname(__FILE__) . "/../../cabecera.php");
 
 // --- Control de permisos ---
-if (!$ACCESO->puedePermiso(2)) {
-    paginaError("No tienes permiso para acceder a esta página de la base de datos.");
-    exit;
-} else if (!$ACCESO->puedePermiso(3)) {
+if (!$ACCESO->puedePermiso(2) || !$ACCESO->puedePermiso(3)) {
     paginaError("No tienes permiso para acceder a esta página de la base de datos.");
     exit;
 }
@@ -33,7 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $borrado    = 0; // por defecto no borrado
 
     // --- ACL: contraseña y rol ---
-    $password        = trim($_POST['password'] ?? "");
+    $password        = trim($_POST['contrasenia'] ?? "");
     $passwordConfirm = trim($_POST['password_confirm'] ?? "");
     $idRol           = (int)($_POST['rol'] ?? 0);
 
@@ -62,27 +59,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Si no hay errores, insertamos
     if (empty($errores)) {
-        $stmt = $bd->prepare("INSERT INTO usuarios 
-            (nick,nombre,nif,direccion,poblacion,provincia,CP,fecha_nacimiento,borrado,foto) 
-            VALUES (?,?,?,?,?,?,?,?,?,?)");
-        $stmt->bind_param("ssssssssss", $nick,$nombre,$nif,$direccion,$poblacion,$provincia,$CP,$fechaNac,$borrado,$fotoNombre);
-        if ($stmt->execute()) {
-            // --- ACL: insertar también en acl_usuarios ---
-            if ($ACL->existeUsuario($nick)) {
-                $errores[] = "El Nick ya existe en la ACL, no se puede crear.";
-            } else {
-                if (!$ACL->insertarUsuario($nick, $nombre, $password, $idRol)) {
-                    $errores[] = "Fallo al insertar en la ACL.";
-                }
-            }
-
-            if (empty($errores)) {
-                $idInsertado = $stmt->insert_id;
-                header("Location: verUsuario.php?id=" . $idInsertado);
-                exit;
-            }
+        // --- Primero comprobamos en ACL ---
+        if ($acl->existeUsuario($nick)) {
+            $errores[] = "El Nick ya existe en la ACL, no se puede crear.";
         } else {
-            $errores[] = "Fallo al insertar en la BD: " . $bd->error;
+            // Insertar en usuarios
+            $stmt = $bd->prepare("INSERT INTO usuarios 
+                (nick,nombre,nif,direccion,poblacion,provincia,CP,fecha_nacimiento,borrado,foto) 
+                VALUES (?,?,?,?,?,?,?,?,?,?)");
+            $stmt->bind_param("ssssssssss", $nick,$nombre,$nif,$direccion,$poblacion,$provincia,$CP,$fechaNac,$borrado,$fotoNombre);
+            
+            if ($stmt->execute()) {
+                // Insertar en ACL
+                if (!$acl->insertarUsuario($nick, $nombre, $password, $idRol)) {
+                    $errores[] = "Fallo al insertar en la ACL.";
+                } else {
+                    $idInsertado = $stmt->insert_id;
+                    header("Location: verUsuario.php?id=" . $idInsertado);
+                    exit;
+                }
+            } else {
+                $errores[] = "Fallo al insertar en la BD: " . $bd->error;
+            }
         }
     }
 }
@@ -120,7 +118,7 @@ function cuerpo($errores, array $ROLES) {
         Foto: <input type="file" name="foto"><br>
 
         <!-- ACL: contraseña y rol -->
-        Contraseña: <input type="password" name="password"><br>
+        Contraseña: <input type="password" name="contrasenia"><br>
         Confirmar contraseña: <input type="password" name="password_confirm"><br>
         Rol:
         <select name="rol">

@@ -86,18 +86,18 @@ if ($ACCESO->hayUsuario() && !in_array($PATH, $PUBLIC_PATHS) && !$ACCESO->puedeP
 }
 
 // Creamos objeto ACLBD global
-$ACL = new ACLBD($servidor, $usuario, $contrasenia, $baseDatos);
+$acl = new ACLBD($servidor, $usuario, $contrasenia, $baseDatos);
 
 
 // Insertar roles solo si la tabla está vacía
-if ($ACL->contarRoles() == 0) {
-    $ACL->insertarRol("normales", [1 => true]);
-    $ACL->insertarRol("administradores", [1 => true, 2 => true]);
-    $ACL->insertarRol("superadmin", [1 => true, 2 => true, 3 => true]);
+if ($acl->contarRoles() == 0) {
+    $acl->insertarRol("normales", [1 => true]);
+    $acl->insertarRol("administradores", [1 => true, 2 => true]);
+    $acl->insertarRol("superadmin", [1 => true, 2 => true, 3 => true]);
 }
 
 // Cargamos roles disponibles una sola vez
-$ROLES = $ACL->listarRoles();
+$ROLES = $acl->listarRoles();
 
 
 

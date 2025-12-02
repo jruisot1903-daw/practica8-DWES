@@ -51,7 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $CP         = trim($_POST['CP'] ?? "");
     $fechaNac   = trim($_POST['fecha_nacimiento'] ?? "");
     $fotoNombre = $usuario['foto']; // mantenemos la actual si no se sube nueva
-    $idRol      = (int)($_POST['rol'] ?? $rolActual['id_rol']);
+    $idRol      = (int)($_POST['rol'] ?? $rolActual['cod_acl_role']);
 
     // Validaciones
     if ($nombre == "") $errores[] = "El nombre es obligatorio";
@@ -76,8 +76,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bind_param("ssssssssi", $nombre,$nif,$direccion,$poblacion,$provincia,$CP,$fechaNac,$fotoNombre,$cod_usuario);
         if ($stmt->execute()) {
             // --- ACL: sincronizar nombre y rol ---
-            $ACL->modificarNombre($usuario['nick'], $nombre);
-            $ACL->asignarRol($usuario['nick'], $idRol);
+            $acl->modificarNombre($usuario['nick'], $nombre);
+            $acl->asignarRol($usuario['nick'], $idRol);
 
             header("Location: verUsuario.php?id=" . $cod_usuario);
             exit;

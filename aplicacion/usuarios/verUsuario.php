@@ -22,9 +22,9 @@ if (!$cod_usuario) {
     exit;
 }
 
-// --- Comprobar que existe en ACL ---
-$sentencia = "SELECT nick, nombre,nif, direccion, poblacion, provincia, CP, 
-                     fecha_nacimiento, foto, password
+// --- Obtener datos del usuario ---
+$sentencia = "SELECT nick, nombre, nif, direccion, poblacion, provincia, CP, 
+                     fecha_nacimiento, foto
               FROM usuarios 
               WHERE cod_usuario=? AND borrado=0";
 $fila = $bd->prepare($sentencia);
@@ -39,7 +39,7 @@ if (!$usuario) {
 }
 
 // --- Obtener rol desde ACL (usando objeto global $ACL) ---
-$rol = $ACL->obtenerRolUsuario($usuario['nick']);
+$rol = $acl->obtenerRolUsuario($usuario['nick']);
 
 // ------------------- VISTA -------------------
 inicioCabecera("Ver Usuario");
@@ -65,7 +65,7 @@ function cuerpo($usuario, $rol, Acceso $ACCESO) {
         CP: <input type="text" value="<?=htmlspecialchars($usuario['CP'])?>" readonly><br>
         Fecha nacimiento: <input type="date" value="<?=htmlspecialchars($usuario['fecha_nacimiento'])?>" readonly><br>
         Foto: 
-        <img src="../../imagenes/fotos/<?=empty($usuario['foto']) ? 'default.png' : htmlspecialchars($usuario['foto'])?>" 
+        <img src="../../imagenes/fotos/<?=empty($usuario['foto']) ? 'default.jpg' : htmlspecialchars($usuario['foto'])?>" 
              alt="foto" width="100"><br>
         Rol: <input type="text" value="<?=htmlspecialchars($rol['nombre'] ?? 'Sin rol')?>" readonly><br>
     </form>
