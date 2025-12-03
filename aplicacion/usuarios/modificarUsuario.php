@@ -37,7 +37,7 @@ if (!$usuario) {
 }
 
 // --- Obtener rol actual desde ACL ---
-$rolActual = $ACL->obtenerRolUsuario($usuario['nick']);
+$rolActual = $acl->obtenerRolUsuario($usuario['nick']);
 
 // --- Procesamiento del formulario ---
 $errores = [];
