@@ -89,18 +89,15 @@ function inicioCuerpo($cabecera)
                 <?php
                 if ($ACCESO->hayUsuario()) {
                     $name = $ACCESO->getNombre();
-                    echo "¡Hola!, $name | <a href='/aplicacion/acceso/logout.php'>Logout</a>";
+                    echo "¡Hola!, $name | <button class='boton'><a href='/aplicacion/acceso/logout.php'>Logout</a></button>";
                 } else {
-                    echo "<a href='/aplicacion/acceso/login.php'>Login</a>";
+                    echo "<button class='boton'><a  href='/aplicacion/acceso/login.php'>Login</a></button>";
                 }
                 ?>
             </div>
             <div id="barraMenu">
                 <ul>
                     <li><a href="/">Inicio</a></li>
-                    <li><a href="/aplicacion/personalizar/personalizar.php">Personalizar</a></li>
-                    <li><a href="/aplicacion/texto/verTextos.php">Ver Textos</a></li>
-                    <li><a href="/aplicacion/usuarios">Ver usuarios</a></li>
                 </ul>
             </div>
 
