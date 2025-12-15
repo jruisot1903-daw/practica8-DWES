@@ -1,6 +1,8 @@
 <?php
 include_once(dirname(__FILE__) . "/../../cabecera.php");
 
+$pulsado = isset($_COOKIE['pulsado']) ? $_COOKIE['pulsado'] + 2 : 1;
+setcookie('pulsado', $pulsado, time() + (86400 * 30), "/"); // 30 días
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -36,12 +38,12 @@ cabecera();
 finCabecera();
 
 inicioCuerpo("Login");
-cuerpo($errors);
+cuerpo($errors,$pulsado);
 finCuerpo();
 
 function cabecera() {}
 
-function cuerpo($errors)
+function cuerpo($errors,$pulsado)
 {
 ?>
     <h1>Login</h1>
@@ -62,6 +64,8 @@ function cuerpo($errors)
         }
         echo "</ul>";
     }
+
     ?>
+    <p>Has pulsado el botón de login <?php echo $pulsado; ?> veces.</p>
 <?php
 }

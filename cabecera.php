@@ -71,33 +71,12 @@ if (!$ACCESO->hayUsuario() && !in_array($PATH, $PUBLIC_PATHS)) {
 }
 
 include(RUTABASE . "/aplicacion/plantilla/plantilla.php");
-include(RUTABASE . "/aplicacion/config/acceso_bd.php");
-include_once(dirname(__FILE__) . "/scripts/clases/ACLBD.php");
+include(RUTABASE . "/scripts/diciembre/Coleccion.php");
 
-// gestión bd
+$coleccion1 = new Coleccion("IT","10/03/2012",20);
+$coleccion2 = new Coleccion("Detectives","21/10/2000",30);
 
-mysqli_report(MYSQLI_REPORT_ERROR); // para que no nos lance exepcciones y no se pare la ejecución
-
-
-// Verificar permisos de acceso a la página
-if ($ACCESO->hayUsuario() && !in_array($PATH, $PUBLIC_PATHS) && !$ACCESO->puedePermiso(1)) {
-    paginaError("No tienes permisos para acceder a esta página.");
-    exit();
-}
-
-// Creamos objeto ACLBD global
-$acl = new ACLBD($servidor, $usuario, $contrasenia, $baseDatos);
-
-
-// Insertar roles solo si la tabla está vacía
-if ($acl->contarRoles() == 0) {
-    $acl->insertarRol("normales", [1 => true]);
-    $acl->insertarRol("administradores", [1 => true, 2 => true]);
-    $acl->insertarRol("superadmin", [1 => true, 2 => true, 3 => true]);
-}
-
-// Cargamos roles disponibles una sola vez
-$ROLES = $acl->listarRoles();
+$COLECCIONES = [$coleccion1,$coleccion2];
 
 
 

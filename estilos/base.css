@@ -27,9 +27,10 @@ body {
     font-style: italic;
 }
 .boton {
-    background-color: blue;
+    background-color: #333333;
     color: white;
     border: thin white solid;
+    margin-left: 5px;
 }
 .boton a {
     text-decoration: none;
@@ -40,11 +41,11 @@ body {
     color: white;
 }
 .boton a:hover {
-    background-color: cyan;
+    background-color: #202020;
     color: white;
 }
 .boton:hover {
-    background-color: cyan;
+    background-color: #202020;
     color: white;
 }
 .tabla {
